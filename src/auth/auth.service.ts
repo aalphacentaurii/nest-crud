@@ -33,7 +33,7 @@ export class AuthService {
         }
 
         if( userDto.email ) {
-            const findByEmail = await this.usersService.getUserByEmail(userDto.email);
+            const findByEmail = await this.usersService.findUser(userDto.email);
 
             if(findByEmail) {
                 throw new HttpException('Email already exists', HttpStatus.BAD_REQUEST);
@@ -41,7 +41,7 @@ export class AuthService {
         }
 
         if (userDto.phone) {
-            const findByPhone = await this.usersService.getUserByPhone(userDto.phone);
+            const findByPhone = await this.usersService.findUser(userDto.phone);
             if(findByPhone) {
                 throw new HttpException('Phone already exists', HttpStatus.BAD_REQUEST);
             }
@@ -63,13 +63,10 @@ export class AuthService {
     }
 
     private async findExistingUser(userDto: LoginUserDto) {
-        const findByEmail = await this.usersService.getUserByEmail(userDto.username);
-        const findByPhone = await this.usersService.getUserByPhone(userDto.username);
-
-        if (!findByEmail && !findByPhone){
+        const user = await this.usersService.findUser(userDto.username);
+        if (!user){
             throw new HttpException('User does not exist!', HttpStatus.BAD_REQUEST);
         }
-        const user = findByEmail || findByPhone;
         const passwordEquals = await bcrypt.compare(userDto.password, user.password);
 
         if( user && passwordEquals ) {

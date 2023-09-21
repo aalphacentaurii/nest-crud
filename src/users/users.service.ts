@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from "@nestjs/sequelize";
 import User from "../models/users.model";
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { Op } from 'sequelize';
 
 @Injectable()
@@ -33,31 +34,24 @@ export class UsersService {
         return users;
     }
 
-    async getUserByEmail(email: string) {
-        const user = await this.userRepository.findOne({where: {email}});
-        return user;
-    }
-
-    async getUserByPhone(phone: string) {
-        const user = await this.userRepository.findOne({where: {phone}});
-        return user;
-    }
-
-    async addPhoneNumberByEmail(phone: string, email: string ) {
-        const user = await this.userRepository.update({phone: phone}, {
-            where: {email}
+    async findUser(username: string) {
+        const user = await this.userRepository.findOne({
+            where: {
+                [Op.or]: [{phone: username}, {email: username}]
+            }
         });
         return user;
     }
 
-    async addEmailByPhoneNumber(phone: string, email: string ) {
-        const user = await this.userRepository.update({email}, {
-            where: {phone}
+    async updateUser( username: string, user: User ) {
+        return await this.userRepository.update( {...user.dataValues}, {
+            where: {
+                [Op.or]: [{phone: user.phone}, {email: user.email}]
+            }
         });
-        return user;
     }
 
-    async deleteUserByEmailOrPhone( username: string ) {
+    async deleteUser( username: string ) {
         const user = await this.userRepository.destroy({
             where: {
                 [Op.or]: [{phone: username}, {email: username}]
